@@ -2,6 +2,8 @@ package com.app.showboxd.episode.controller;
 
 import com.app.showboxd.common.tmdb.TMDBClient;
 import com.app.showboxd.episode.dto.Episode;
+import info.movito.themoviedbapi.model.tv.episode.TvEpisodeDb;
+import info.movito.themoviedbapi.tools.TmdbException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -17,13 +19,13 @@ public class EpisodeController {
     private TMDBClient tmdbClient;
 
     @GetMapping("/episode/{episodeNumber}")
-    public ResponseEntity<Episode> getSeason(
+    public ResponseEntity<TvEpisodeDb> getSeason(
             @PathVariable("seriesId") int seriesId,
             @PathVariable("seasonNumber") int seasonNumber,
-            @PathVariable("episodeNumber") int episodeNumber) {
-        Episode episode = tmdbClient.getEpisode(seriesId, seasonNumber,episodeNumber);
-        if (episode != null) {
-            return ResponseEntity.ok(episode);
+            @PathVariable("episodeNumber") int episodeNumber) throws TmdbException {
+        TvEpisodeDb tvEpisodeDb = tmdbClient.getTmdbTvEpisodes().getDetails(seriesId, seasonNumber,episodeNumber,null);
+        if (tvEpisodeDb != null) {
+            return ResponseEntity.ok(tvEpisodeDb);
         } else {
             return ResponseEntity.notFound().build();
         }

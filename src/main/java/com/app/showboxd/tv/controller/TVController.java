@@ -1,8 +1,9 @@
 package com.app.showboxd.tv.controller;
 
 import com.app.showboxd.common.tmdb.TMDBClient;
-import com.app.showboxd.tv.dto.TVSearchResponse;
-import com.app.showboxd.tv.dto.TVShow;
+import info.movito.themoviedbapi.model.core.TvSeriesResultsPage;
+import info.movito.themoviedbapi.model.tv.series.TvSeriesDb;
+import info.movito.themoviedbapi.tools.TmdbException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -19,9 +20,10 @@ public class TVController {
     private TMDBClient tmdbClient;
 
     @GetMapping("/search")
-    public ResponseEntity<TVSearchResponse> searchShows(@RequestParam String query) {
-        TVSearchResponse tvSearchResponse = tmdbClient.searchShows(
+    public ResponseEntity<TvSeriesResultsPage> searchShows(@RequestParam String query) throws TmdbException {
+        TvSeriesResultsPage tvSearchResponse = tmdbClient.getTmdbSearch().searchTv(
                 query,
+                null,
                 null,
                 null,
                 null,
@@ -35,9 +37,8 @@ public class TVController {
     }
 
     @GetMapping("/{seriesId}")
-    public ResponseEntity<TVShow> getSeriesDetails(@PathVariable int seriesId)
-    {
-        TVShow tvShow = tmdbClient.getShowDetails(seriesId);
-        return ResponseEntity.ok(tvShow);
+    public ResponseEntity<TvSeriesDb> getSeriesDetails(@PathVariable int seriesId) throws TmdbException {
+        TvSeriesDb tvShowDb = tmdbClient.getTmdbTvSeries().getDetails(seriesId,null);
+        return ResponseEntity.ok(tvShowDb);
     }
 }
