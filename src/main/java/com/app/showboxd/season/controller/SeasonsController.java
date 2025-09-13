@@ -1,7 +1,6 @@
 package com.app.showboxd.season.controller;
 
 import com.app.showboxd.common.tmdb.TMDBClient;
-import com.app.showboxd.season.dto.Season;
 import info.movito.themoviedbapi.model.tv.season.TvSeasonDb;
 import info.movito.themoviedbapi.tools.TmdbException;
 import org.springframework.beans.factory.annotation.Autowired;
