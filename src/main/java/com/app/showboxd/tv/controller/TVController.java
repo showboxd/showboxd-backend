@@ -4,6 +4,8 @@ import com.app.showboxd.common.tmdb.TMDBClient;
 import info.movito.themoviedbapi.model.core.TvSeriesResultsPage;
 import info.movito.themoviedbapi.model.tv.series.TvSeriesDb;
 import info.movito.themoviedbapi.tools.TmdbException;
+import info.movito.themoviedbapi.tools.appendtoresponse.TvSeriesAppendToResponse;
+import info.movito.themoviedbapi.tools.model.time.TimeWindow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -36,9 +38,36 @@ public class TVController {
         }
     }
 
+    @GetMapping("/trending")
+    public ResponseEntity<TvSeriesResultsPage> getTrendingShows() throws TmdbException {
+        TvSeriesResultsPage tvSeriesResultsPage = tmdbClient.getTmdbApi().getTrending().getTv(TimeWindow.WEEK,null);
+        if (tvSeriesResultsPage != null) {
+            return ResponseEntity.ok(tvSeriesResultsPage);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/popular")
+    public ResponseEntity<TvSeriesResultsPage> getPopularShows(@RequestParam int page) throws TmdbException {
+        TvSeriesResultsPage tvSeriesResultsPage = tmdbClient.getTmdbTvSeriesList().getPopular(null,page);
+        if (tvSeriesResultsPage != null) {
+            return ResponseEntity.ok(tvSeriesResultsPage);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/{seriesId}/recommended")
+    public ResponseEntity<TvSeriesResultsPage> getRecommendedShows(@PathVariable int seriesId) throws TmdbException {
+        TvSeriesResultsPage tvSeriesResultsPage = tmdbClient.getTmdbTvSeries().getRecommendations(seriesId,null,null);
+        if  (tvSeriesResultsPage != null) {
+            return ResponseEntity.ok(tvSeriesResultsPage);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
     @GetMapping("/{seriesId}")
     public ResponseEntity<TvSeriesDb> getSeriesDetails(@PathVariable int seriesId) throws TmdbException {
-        TvSeriesDb tvShowDb = tmdbClient.getTmdbTvSeries().getDetails(seriesId,null);
+        TvSeriesDb tvShowDb = tmdbClient.getTmdbTvSeries().getDetails(seriesId,null, TvSeriesAppendToResponse.WATCH_PROVIDERS,TvSeriesAppendToResponse.IMAGES);
         return ResponseEntity.ok(tvShowDb);
     }
 }

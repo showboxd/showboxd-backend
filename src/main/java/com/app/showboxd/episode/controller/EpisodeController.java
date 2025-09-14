@@ -18,7 +18,7 @@ public class EpisodeController {
     private TMDBClient tmdbClient;
 
     @GetMapping("/episode/{episodeNumber}")
-    public ResponseEntity<TvEpisodeDb> getSeason(
+    public ResponseEntity<TvEpisodeDb> getEpisode(
             @PathVariable("seriesId") int seriesId,
             @PathVariable("seasonNumber") int seasonNumber,
             @PathVariable("episodeNumber") int episodeNumber) throws TmdbException {
