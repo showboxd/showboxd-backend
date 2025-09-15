@@ -28,8 +28,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody UserDto userDto) {
-        return loginService.register(userDto);
+    public ResponseEntity<UserDto> register(@RequestBody UserDto userDto, HttpServletResponse response) {
+        return loginService.register(userDto, response);
     }
 
     @GetMapping("/testJwt")

@@ -1,5 +1,6 @@
-package com.app.showboxd.util;
+package com.app.showboxd.auth.util;
 
+import com.app.showboxd.user.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -17,10 +18,10 @@ public class JWTUtil {
 
     public static final String AUTH_HEADER_PREFIX = "Bearer ";
 
-    public static String generateJwtToken(UserDetails userDetails, int expirationDays, String jwtSecretKey) {
+    public static String generateJwtToken(User userDetails, int expirationDays, String jwtSecretKey) {
         Date expirationDate = Date.from(Instant.now().plus(expirationDays, ChronoUnit.SECONDS));
         return Jwts.builder().
-                        subject(userDetails.getUsername())
+                        subject(userDetails.getEmail())
                         .claim("user_id", userDetails.getUsername())
                         .issuedAt(new Date())
                         .expiration(expirationDate)
@@ -52,12 +53,12 @@ public class JWTUtil {
         return claims.getExpiration().before(new Date());
     }
 
-    public static boolean isTokenValid(UserDetails userDetails, Claims claims) {
-        String userName = getUserNameFromClaims(claims);
-        return Strings.CS.equals(userDetails.getUsername(), userName) && !isTokenExpired(claims);
+    public static boolean isTokenValid(User userDetails, Claims claims) {
+        String userEmail = getUserEmailFromClaims(claims);
+        return Strings.CI.equals(userDetails.getEmail(), userEmail) && !isTokenExpired(claims);
     }
 
-    public static String getUserNameFromClaims(Claims claims) {
+    public static String getUserEmailFromClaims(Claims claims) {
         return claims.getSubject();
     }
 }

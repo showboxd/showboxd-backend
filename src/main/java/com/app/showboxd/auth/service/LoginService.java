@@ -1,13 +1,14 @@
 package com.app.showboxd.auth.service;
 
-import com.app.showboxd.config.ShowboxdUserDetailsService;
+import com.app.showboxd.user.service.ShowboxdUserDetailsService;
 import com.app.showboxd.user.dto.UserDto;
 import com.app.showboxd.user.entity.User;
 import com.app.showboxd.user.repository.UserRepository;
-import com.app.showboxd.util.JWTUtil;
+import com.app.showboxd.auth.util.JWTUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,16 +49,13 @@ public class LoginService {
         try{
             Authentication authentication = authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            userDto.getUsername(), userDto.getPassword()
+                            userDto.getEmail(), userDto.getPassword()
                     )
             );
             if(authentication.isAuthenticated()) {
                 User user = (User) authentication.getPrincipal();
                 String jwtToken = JWTUtil.generateJwtToken(user, expirationDays, jwtSecretKey);
-                Cookie cookie = new Cookie("authToken", jwtToken);
-                cookie.setHttpOnly(true);
-                cookie.setMaxAge(864000);
-                cookie.setPath("/");
+                Cookie cookie = getAuthCookei(jwtToken);
                 response.addCookie(cookie);
                 return ResponseEntity.ok().build();
             }
@@ -68,17 +66,33 @@ public class LoginService {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
-    public ResponseEntity<User> register(UserDto userDto) {
-        UserDetails userDetails = showboxdUserDetailsService.loadUserByUsername(userDto.getUsername());
-        if(userDetails != null) {
-            log.error("User already exists user = {}", userDetails.getUsername());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+    public ResponseEntity<UserDto> register(UserDto userDto, HttpServletResponse response) {
+        try {
+            UserDetails userDetails = showboxdUserDetailsService.loadUserByUsername(userDto.getEmail());
+            if(userDetails != null) {
+                log.error("User already exists user = {}", userDetails.getUsername());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
+            User user = new User();
+            BeanUtils.copyProperties(userDto, user, "password");
+            user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+            userRepository.save(user);
+            String jwtToken = JWTUtil.generateJwtToken(user, expirationDays, jwtSecretKey);
+            Cookie cookie = getAuthCookei(jwtToken);
+            response.addCookie(cookie);
+            userDto.setPassword(null);
+            return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
+        } catch (Exception e) {
+            log.error("Error creating new User , userName = {}, email = {}", userDto.getUsername(), userDto.getEmail());
+            return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-        User user = new User();
-        user.setUsername(userDto.getUsername());
-        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+    }
 
-        userRepository.save(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(user);
+    private Cookie getAuthCookei(String jwtToken) {
+        Cookie cookie = new Cookie("authToken", jwtToken);
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(864000);
+        cookie.setPath("/");
+        return cookie;
     }
 }

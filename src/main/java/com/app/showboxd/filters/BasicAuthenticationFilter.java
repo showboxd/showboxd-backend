@@ -1,7 +1,8 @@
 package com.app.showboxd.filters;
 
-import com.app.showboxd.config.ShowboxdUserDetailsService;
-import com.app.showboxd.util.JWTUtil;
+import com.app.showboxd.user.entity.User;
+import com.app.showboxd.user.service.ShowboxdUserDetailsService;
+import com.app.showboxd.auth.util.JWTUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -57,11 +58,12 @@ public class BasicAuthenticationFilter implements Filter {
                 String jwtToken = JWTUtil.extractHeaderToken(request.getHeader(AUTH_HEADER));
                 Claims claims = JWTUtil.parseJwtToken(jwtToken, jwtSecretKey);
                 if(StringUtils.isNotEmpty(jwtToken) || claims != null) {
-                    String userName = JWTUtil.getUserNameFromClaims(claims);
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
+                    String userEmail = JWTUtil.getUserEmailFromClaims(claims);
+                    User userDetails = (User) userDetailsService.loadUserByUsername(userEmail);
                     if(JWTUtil.isTokenValid(userDetails, claims)) {
                         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                        log.info("loggedIn user = {}, requestedPath {}", userDetails.getEmail(), requestedPath);
                     } else {
                         log.error("Invalid auth-token/User");
                         throw new AuthenticationServiceException("Invalid auth-token/User");

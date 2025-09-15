@@ -16,6 +16,7 @@ public class User implements UserDetails {
     @MongoId
     private String id;
     private String username;
+    private String email;
     private String password;
 
     @Override
